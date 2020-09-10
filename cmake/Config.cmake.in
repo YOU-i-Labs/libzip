@@ -2,7 +2,9 @@
 
 find_package(ZLIB CONFIG REQUIRED)
 find_package(BZip2 CONFIG REQUIRED)
-find_package(OpenSSL REQUIRED)
+if(@ENABLE_OPENSSL@)
+    find_package(OpenSSL REQUIRED)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/@TARGETS_EXPORT_NAME@.cmake")
 check_required_components("@PROJECT_NAME@")
