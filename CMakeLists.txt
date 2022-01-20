@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.0.2)
 
+option(HUNTER_ENABLED "Enable Hunter package manager support" OFF)
+include("cmake/HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.23.171.tar.gz"
+    SHA1 "5d68bcca78eee347239ca5f4d34f4b6c12683154"
+)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 if (${CMAKE_VERSION} VERSION_LESS "3.17.0")
   list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake-compat)
@@ -46,7 +53,12 @@ if(ENABLE_MBEDTLS)
   find_package(MbedTLS 1.0)
 endif()
 if(ENABLE_OPENSSL)
-  find_package(OpenSSL)
+  IF(HUNTER_ENABLED)
+  hunter_add_package(OpenSSL)
+    find_package(OpenSSL REQUIRED)
+  ELSE(HUNTER_ENABLED)
+    INCLUDE(FindOpenSSL)
+  ENDIF(HUNTER_ENABLED)
 endif()
 if(WIN32)
   if(ENABLE_WINDOWS_CRYPTO)
@@ -71,8 +83,10 @@ else()
   endif()
 endif()
 
-include(Dist)
-Dist(${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION})
+if (NOT HUNTER_ENABLED)
+  include(Dist)
+  Dist(${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION})
+endif()
 
 #ADD_CUSTOM_TARGET(uninstall
 #  COMMAND cat ${PROJECT_BINARY_DIR}/install_manifest.txt | xargs rm
@@ -175,10 +189,23 @@ int main(int argc, char *argv[]) { }" HAVE_NULLABLE)
 
 test_big_endian(WORDS_BIGENDIAN)
 
-find_package(ZLIB 1.1.2 REQUIRED)
+IF(HUNTER_ENABLED)
+  hunter_add_package(ZLIB)
+  find_package(ZLIB CONFIG REQUIRED)
+  set(ZLIB_LIBRARY ZLIB::zlib)
+ELSE(HUNTER_ENABLED)
+  FIND_PACKAGE(ZLIB REQUIRED)
+  set(ZLIB_LIBRARY ZLIB::ZLIB)
+ENDIF(HUNTER_ENABLED)
 
 if(ENABLE_BZIP2)
-  find_package(BZip2)
+  IF(HUNTER_ENABLED)
+    hunter_add_package(BZip2)
+    find_package(BZip2 CONFIG REQUIRED)
+  ELSE(HUNTER_ENABLED)
+    find_package(BZip2)
+  ENDIF(HUNTER_ENABLED)
+
   if(BZIP2_FOUND)
     set(HAVE_LIBBZ2 1)
   else()
