@@ -37,6 +37,25 @@
 #include "zip_crypto.h"
 #endif
 
+#if defined(YI_PORT_FILE_REQUIRED)
+
+#include <YiPort.h>
+
+ZIP_EXTERN bool
+zip_secure_random(zip_uint8_t *buffer, zip_uint16_t length) {
+    YiPortGetRandomNumber(buffer, length);    
+    return true;
+}
+
+zip_uint32_t
+zip_random_uint32(void) {
+    zip_uint32_t value=0;
+    YiPortGetRandomNumber((zip_uint8_t *)&value, sizeof(value));    
+    return value;
+}
+
+#else // YI_PORT_FILE_REQUIRED
+
 #ifdef HAVE_ARC4RANDOM
 
 #include <stdlib.h>
@@ -102,3 +121,5 @@ zip_random_uint32(void) {
 #endif
 
 #endif /* HAVE_ARC4RANDOM */
+
+#endif /* YI_PORT_FILE_REQUIRED */
